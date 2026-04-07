@@ -8,11 +8,13 @@
       <div class="task-info">
         <h3 :class="{ 'done-text': task.completed }">{{ task.title }}</h3>
         <p>{{ task.description }}</p>
-        <span class="badge" :class="task.completed ? 'bg-success' : 'bg-warning'">
-          {{ task.completed ? 'Concluída' : 'Pendente' }}
-        </span>
+        <p><strong>Status:</strong> {{ task.completed ? 'Concluído' : 'Em andamento' }}</p>
       </div>
-      <button @click="deletar(task.id)" class="btn-delete">Excluir</button>
+
+      <div class="task-actions">
+        <router-link :to="`/editar/${task.id}`" class="btn-edit">✏️ Editar</router-link>
+        <button @click="deletar(task.id)" class="btn-delete">Excluir</button>
+      </div>
     </div>
   </div>
 </template>
@@ -24,14 +26,22 @@ import axios from 'axios'
 const tasks = ref([])
 
 const carregar = async () => {
-  const res = await axios.get('http://localhost:8080/api/tasks')
-  tasks.value = res.data
+  try {
+    const res = await axios.get('http://localhost:8080/api/tasks')
+    tasks.value = res.data
+  } catch (e) {
+    console.error("Erro ao carregar:", e)
+  }
 }
 
 const deletar = async (id) => {
   if(confirm("Deseja apagar esta tarefa?")) {
-    await axios.delete(`http://localhost:8080/api/tasks/${id}`)
-    carregar()
+    try {
+      await axios.delete(`http://localhost:8080/api/tasks/${id}`)
+      carregar()
+    } catch (e) {
+      alert("Erro ao excluir!")
+    }
   }
 }
 
@@ -39,11 +49,16 @@ onMounted(carregar)
 </script>
 
 <style scoped>
-.task-card { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+.task-card { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 15px; 
+  border-bottom: 1px solid #eee; 
+}
 .done-text { text-decoration: line-through; color: #888; }
-.badge { font-size: 0.8rem; padding: 3px 8px; border-radius: 12px; color: white; }
-.bg-success { background: #42b983; }
-.bg-warning { background: #f39c12; }
-.btn-delete { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+.task-actions { display: flex; gap: 10px; }
+.btn-edit { background: #3498db; color: white; text-decoration: none; padding: 8px 12px; border-radius: 4px; font-size: 0.9rem; }
+.btn-delete { background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
 .empty { text-align: center; color: #888; margin-top: 2rem; }
 </style>
